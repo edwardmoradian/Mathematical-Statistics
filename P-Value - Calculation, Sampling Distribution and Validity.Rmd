@@ -1,0 +1,88 @@
+---
+title: "P-Value - Calculation, Sampling Distribution and Validity"
+author: "Edward Moradian"
+date: "November 16, 2018"
+output:
+  word_document: default
+
+---
+
+First we initialize all of our variables. We first start by a test example and have niter = 1 and n = 1.
+```{r}
+set.seed(1)
+n <- 1
+mu <- 0
+sigma <- 1
+alpha <- .05
+niter <- 1 ## Monte Carlo number of iterations
+i = 0
+xbar <- vector()
+fx <- vector()
+prob <- vector()
+pvalue <- vector()
+```
+
+Testing for a one-sided lower-tail Z-Test: We set the Z Test statistic to equal to -2. This returns a p-value of .02275013 which is approximately .0228. Therefore, our algorithm is correctly working.
+```{r}
+for (i in 1:niter)
+{
+  x0 <- rnorm(n,mu,sigma) 
+  xbar[i] <- mean(x0)
+  
+  
+  fx[i] <- -2  # Set Z Test Statistic to equal to -2
+  prob[i] <- pnorm(fx[i],mu,sigma, lower.tail=TRUE) # Set lower.tail = TRUE since we are testing for lower tail
+  pvalue[i] <- (prob[i]) # If this was an upper tail test, subtract 1 from prob([i])
+}
+pvalue
+```
+
+Now, we test for a two-sided Z-Test with the number of iterations to 5000. We return a sampling distribution of these 5000 p-values.
+
+Set the number of iterations in the Monte Carlo algorithm to be 5000. The sample size of this distribution is set to 20.
+```{r}
+n = 20
+niter <- 5000 ## Monte Carlo number of iterations
+```
+
+```{r}
+for (i in 1:niter)
+{
+  x0 <- rnorm(n,mu,sigma) # random sampling of a standard normal distribution 5000 times
+  xbar[i] <- mean(x0) # Calculate the mean of the sampled standard normal distribution
+  
+  
+  fx[i] <- abs((xbar[i] - mu)/(sigma/sqrt(n)))  # Z-Test Statistic calculation
+  
+  # For values of two-sided T-S calculate upper-tail cdf of standard normal distribution
+  
+  prob[i] <- pnorm(fx[i],mu,sigma, lower.tail=FALSE)  # Calculate the CDF of Test-Statistic
+  pvalue[i] <- 2*(prob[i]) # multiply upper-tail prob by 2
+  
+}
+head(pvalue) # see a few of the iterations of the p-values
+```
+
+Plot a simple histogram of the p-values. The other plot is the Empirical Cumulative Density Function plot. This is an alternative way to visualize a distribution.  This plot shows a roughly 45 degree line meaning that the approximated CDF is a good fit with the theoretical CDF.
+```{r}
+library(ggplot2)
+hist(pvalue)
+plot(ecdf(pvalue))
+```
+
+
+By using ggplot2, we can customize the visualization to include more information. Clearly, the sampling distribution of the p-values fits a uniform distribution with a 0 < X < 1. Also, each p-value has an equal chance of being chosen. This is expected as our x-values are from a standard normal distribution and with a Monte Carlo algorithm set at 5000 iterations, the sampling distribution of p-values will fit a uniform distribution were each p-value is chosen asymptotically equal to one another. One plot is a frequency plot and the other is a density plot.
+```{r}
+pvalue2 <-pvalue
+pvalue <- data.frame(pvalue)
+ggplot(data=pvalue, aes(x=pvalue)) + geom_histogram(aes(y=..count..), color="black", fill="white") + ylim (0,250) + xlim(0,1) + labs(title="Sampling Distribution of P-Values",x="P-Values",y="Frequency")
+ggplot(data=pvalue, aes(x=pvalue)) + geom_histogram(aes(y=..density..), color="black", fill="white",bins=20)  + ylim (0,1.3) + xlim(0,1) + labs(title="Sampling Distribution of P-Values",x="P-Values",y="Density")
+```
+
+
+The probability that the p-value is less than or equal to alpha (i.e., to reject the null hypothesis) has a probability that is less than or equal to alpha. Because alpha = .05, the probability that the p-value is less than .05 is less than or equal to .05. We can empirically confirm this by selecting for the 5% quantile of the sampling distribution of p-values under the test.  Here, we see that at the the probability that the p-value is less than or equal to .05 is asymptotically .05. We see that this is the case for any value alpha. Therefore, the p-value for this test is valid.
+```{r}
+quantile(pvalue2,probs = seq(0, 1, 0.05))
+quantile(pvalue2,probs = seq(0, .05, 0.01))
+```
+

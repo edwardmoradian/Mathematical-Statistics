@@ -1,0 +1,33 @@
+---
+title: "Finding the Maximum of a Function"
+author: "Edward Moradian"
+date: "November 01, 2018"
+output:
+  word_document: default
+
+---
+
+
+##Plot the function f(x) = x * exp(-x) where x > 0.
+
+```{r}
+x <- seq(from=.1,to=20,length.out=400)
+plot(x * exp (-x),type="l")
+```
+
+In the plot of the function, setting the support of x to be from 0 to 5 shows the maximum of the function to be at x = 1.
+```{r}
+library(ggplot2)
+```
+```{r}
+Function1 = function(x) x*exp(-x)
+a <- ggplot(data.frame(x = c(0, 5)), aes(x = x)) + stat_function(fun=Function1)
+a + ggtitle("Plot of the Function") +  xlab("X-axis") + ylab("Y-axis")
+```
+
+If we check with the optimize function in R, with an interval of 0 to 5 for the x-axis, we have a maximum at x=1.
+```{r}
+b <- optimize(Function1,interval=c(0,5),maximum=TRUE)
+b
+```
+
