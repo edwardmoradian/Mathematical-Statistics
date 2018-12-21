@@ -1,2 +1,2 @@
 # Mathematical-Statistics
-Selection of Programs About Topics in Mathematical Statistics
+Selection of programs about various topics in mathematical statistics.
